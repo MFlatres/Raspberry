@@ -5,12 +5,11 @@
 #include <pigpio.h>
 
 
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Initialisation of output: two different channels for two different motors
 
 #define PWM_CHANNEL1 0  //PWM0 on RPI
 #define pin1 18 
-
 #define PWM_CHANNEL2 1  //PWM1 on RPI
 #define pin2 19 
 
@@ -28,7 +27,7 @@ struct PWM{
 //-------------------------------------------------------------------------
 // Call a function that manage software part
 
-void PWMsoftware(void* arg);
+void* PWMsoftware(void* arg);
 
 
 //------------------------------------------------------------------------
@@ -69,23 +68,18 @@ int main(int argc, char* argv[] ) {
 //---------------------------------------------------------------------
 // Iteration on frequencies
   for  (int i=0; i<argc-1; i++){
-    
-//---------------------------------------------------------------------
+
     gpioSetMode(PWMwork[i].pin, PI_OUTPUT);
     
-//---------------------------------------------------------------------      
     printf("Required frequency: %f Hz\n", PWMwork[i].frequency);
     printf("Loop %i, Channel %i, pin %i\n", i,PWMwork[i].channel, PWMwork[i].pin);
-    
-    
+
 //---------------------------------------------------------------------
-// Using of Harware for frequency >= 1 Hz
+// Using of Hardware for frequency >= 1 Hz
     
     if (PWMwork[i].frequency >= 1){
 
       int dutyC =500000; //period/2;
-
-
       gpioHardwarePWM(PWMwork[i].pin, PWMwork[i].frequency, dutyC);
 
       int RealRange= gpioGetPWMrealRange(PWMwork[i].pin);
@@ -100,11 +94,11 @@ int main(int argc, char* argv[] ) {
 //Using of software for frequency < 1 Hz (with the a function)
     
     else {
-      PWMsoftware((void*) &PWMwork[i]);
+       gpioStartThread(PWMsoftware, (void*) &PWMwork[i]);
     }
   }
-  //-----------------------------------------------------------      
-  // Hardware part will keep working if we don't stop it handly
+//-----------------------------------------------------------      
+// Hardware part will keep working if we don't stop it handly
   
   char stop; 
   printf("----------------------------------\n");
@@ -123,10 +117,10 @@ int main(int argc, char* argv[] ) {
 //----------------------------------------------------------------
 // Function Software
 
-void PWMsoftware(void* arg){
+void* PWMsoftware(void* arg){
   
   struct PWM* argp = (struct PWM*) arg;
-  double period = 500 / argp->frequency;
+  double period = 500000 / argp->frequency;
   
   while(1) {
     gpioPWM(argp->pin, 0);
