@@ -28,7 +28,7 @@ struct PWM{
 //-------------------------------------------------------------------------
 // Call a function that manage software part
 
-void PWMsoftware(struct PWM a);
+void PWMsoftware(void* arg);
 
 
 //------------------------------------------------------------------------
@@ -100,7 +100,7 @@ int main(int argc, char* argv[] ) {
 //Using of software for frequency < 1 Hz (with the a function)
     
     else {
-      PWMsoftware(PWMwork[i]);
+      PWMsoftware((void*) &PWMwork[i]);
     }
   }
   //-----------------------------------------------------------      
@@ -123,15 +123,16 @@ int main(int argc, char* argv[] ) {
 //----------------------------------------------------------------
 // Function Software
 
-void PWMsoftware(struct PWM a){
-  double period = 500 / a.frequency;
-    
+void PWMsoftware(void* arg){
+  
+  struct PWM* argp = (struct PWM*) arg;
+  double period = 500 / argp->frequency;
   
   while(1) {
-    gpioPWM(a.pin, 0);
+    gpioPWM(argp->pin, 0);
     gpioDelay((int)period);
     
-    gpioPWM(a.pin, 255);
+    gpioPWM(argp->pin, 255);
     gpioDelay((int)period);
   }
 }
