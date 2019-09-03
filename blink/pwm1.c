@@ -38,7 +38,7 @@ int main(int argc, char* argv[] ) {
     
     int pin;
     if (i == 0) pin=18;  // PWM0
-    if (i == 1) pin=12;  // PWM1
+    if (i == 1) pin=13;  // PWM1
     
     
     

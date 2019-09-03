@@ -12,8 +12,10 @@
 #define PWM_CHANNEL1 0
 #define PWM_CHANNEL2 1
 
-#define pin1 RPI_GPIO_P1_18
-#define pin2 RPI_GPIO_P1_13
+#define pin1 19 // RPI_GPIO_P1_12
+//#define pin2 RPI_GPIO_P1_10
+#define pin2 19
+
 
 
 int main(int argc, char* argv[] ) {
@@ -79,24 +81,24 @@ int main(int argc, char* argv[] ) {
     int maxDivisor = 1024;
     int maxPeriod = 1024;
     
-    if (frequency[i] >= 1.5){
+    if (frequency[i] >= 18.5){
       //pinMode(pin, PWM_OUTPUT);
       //pwmSetMode(PWM_MODE_MS);  // Call pwmSetMode() *after* pinMode()!
       
       int divisor = maxDivisor / sqrt(frequency[i]);        // 2 - 4095  ~ divisor, but doesn't have to be a power of 2 - scales linearly? with period
       if(divisor > maxDivisor) divisor = maxDivisor;
       divisor = maxDivisor;
-      divisor = BCM2835_PWM_CLOCK_DIVIDER_16;
+      divisor = BCM2835_PWM_CLOCK_DIVIDER_1024	;
       //divisor = BCM2835_PWM_CLOCK_DIVIDER_1024;  // WARNING: OVERRULING DIVISOR AND PERIOD!!!
       
       int period  = (int) (19.2e6 / (double)(divisor*frequency[i]));
       if(period > maxPeriod) period = maxPeriod;
-      period = 1024;  // WARNING: OVERRULING DIVISOR AND PERIOD!!!
+      // period = 1024;  // WARNING: OVERRULING DIVISOR AND PERIOD!!!
       
       int dutyC   = period/2;    // up time in clock cycles - for 50%, this should be period/2
       
       
-      printf("Divisor: %i,  period: %i,  duty cycle: %i\n", divisor, period, dutyC);
+      printf("Divisor: %i,  period: %i,  duty cycle: %i, Channel: %i\n", divisor, period, dutyC,channel);
       
       frequency[i] = 19.2e6 / (double)(divisor*period);
       printf("Actual frequency: %f Hz\n", frequency[i]);
@@ -130,11 +132,11 @@ int main(int argc, char* argv[] ) {
       
       while(1) {
 	pwmWrite(pin, 0);
-	printf("Down\n");
+	//printf("Down\n");
 	delay((int)period[i]);
 	
 	pwmWrite(pin, 4095);
-	printf("Up\n");
+	//printf("Up\n");
 	delay((int)period[i]);
 
       
