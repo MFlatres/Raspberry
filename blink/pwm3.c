@@ -59,13 +59,13 @@ int main(int argc, char* argv[] ) {
   
 
 //-------------------------------------------------------------------------
-//Initialisation of the 2 structures
+//Initialisation of the 2 structures ant put it in a single array
 
   struct PWM PWM1 = {pin1, frequency1, PWM_CHANNEL1};
   struct PWM PWM2 = {pin2, frequency2, PWM_CHANNEL2};
 
 
-  struct PWM PWMwork;
+  struct PWM PWMwork[2]={PWM1, PWM2};
 
 //---------------------------------------------------------------------
 // Iteration on frequencies
@@ -73,36 +73,35 @@ int main(int argc, char* argv[] ) {
   
  
 //---------------------------------------------------------------------    
-    if (i == 0){
-      PWMwork = PWM1;  
-    };
-
-    if (i == 1){
-      PWMwork = PWM2 ; 
-    };
+    // if (i == 0){
+    // PWMwork = PWM1;  
+    //};
+    //    if (i == 1){
+    // PWMwork = PWM2 ; 
+    // };
 
 //---------------------------------------------------------------------
-    gpioSetMode(PWMwork.pin, PI_OUTPUT);
+    gpioSetMode(PWMwork[i].pin, PI_OUTPUT);
     
 //---------------------------------------------------------------------      
-    printf("Required frequency: %f Hz\n", PWMwork.frequency);
-    printf("Loop %i, Channel %i, pin %i\n", i,PWMwork.channel, PWMwork.pin);
+    printf("Required frequency: %f Hz\n", PWMwork[i].frequency);
+    printf("Loop %i, Channel %i, pin %i\n", i,PWMwork[i].channel, PWMwork[i].pin);
     
     
 //---------------------------------------------------------------------
 // Using of Harware for frequency >= 1 Hz
     
-    if (PWMwork.frequency >= 1){
+    if (PWMwork[i].frequency >= 1){
 
       int dutyC =500000; //period/2;
 
 
-      gpioHardwarePWM(PWMwork.pin, PWMwork.frequency, dutyC);
+      gpioHardwarePWM(PWMwork[i].pin, PWMwork[i].frequency, dutyC);
 
-      int RealRange= gpioGetPWMrealRange(PWMwork.pin);
+      int RealRange= gpioGetPWMrealRange(PWMwork[i].pin);
       printf("the real Range is: %i Hz\n",RealRange);
       
-      int RealFrequency= gpioGetPWMfrequency(PWMwork.pin);
+      int RealFrequency= gpioGetPWMfrequency(PWMwork[i].pin);
       printf("the real frequency is: %i Hz\n",RealFrequency);      
       
     }
@@ -114,14 +113,14 @@ int main(int argc, char* argv[] ) {
       //  int wiringPiSetup(void);
       
       // pinMode(pin, PWM_OUTPUT);
-      double period[2] = {500 / PWM1.frequency, 500/ PWM2.frequency} ;
+      double period[2] = {500 / PWMwork[i].frequency, 500/ PWMwork[i].frequency} ;
       
       
       while(1) {
-	gpioPWM(PWMwork.pin, 0);
+	gpioPWM(PWMwork[i].pin, 0);
 	delay((int)period[i]);
 	
-	gpioPWM(PWMwork.pin, 255);
+	gpioPWM(PWMwork[i].pin, 255);
 	delay((int)period[i]);
       }
     }
