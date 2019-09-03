@@ -9,16 +9,27 @@
 //------------------------------------------------------------------------
 // Initialisation of output: two different channels for two different motors
 
-#define PWM_CHANNEL1 0
-#define PWM_CHANNEL2 1
+#define PWM_CHANNEL1 0  //PWM0 on RPI
+#define PWM_CHANNEL2 1  //PWM1 on RPI
 
 #define pin1 18 
 #define pin2 19 
 
 
 //------------------------------------------------------------------------
+// Create a structure PWM which contains output and frequency
+
+  struct PWM{
+    int pin;
+    double frequency;
+    int channel;
+  };
+
+
+//------------------------------------------------------------------------
 
 int main(int argc, char* argv[] ) {
+
 
   // Test to control initialisation of <pigpio.h>  library
   if (gpioInitialise() < 0)
@@ -43,50 +54,55 @@ int main(int argc, char* argv[] ) {
   if(argc == 3) frequency2 = strtod(argv[2], NULL);
   
   
-  double frequency[2] = {frequency1, frequency2};
-  printf("%f %f\n", frequency[0], frequency[1]);
+  // double frequency[2] = {frequency1, frequency2};
+  //printf("%f %f\n", frequency[0], frequency[1]);
   
 
-  // Iteration on frequencies
-  for(int i=0; i<argc-1; i++){
-    
-    printf("\n");
-    
-    int pin;
-    int channel;
+//-------------------------------------------------------------------------
+//Initialisation of the 2 structures
+
+  struct PWM PWM1 = {pin1, frequency1, PWM_CHANNEL1};
+  struct PWM PWM2 = {pin2, frequency2, PWM_CHANNEL2};
+
+
+  struct PWM PWMwork;
+
+//---------------------------------------------------------------------
+// Iteration on frequencies
+  for  (int i=0; i<argc-1; i++){
+  
  
 //---------------------------------------------------------------------    
     if (i == 0){
-      channel= PWM_CHANNEL1;
-      pin = pin1;  // PWM0
-    }
+      PWMwork = PWM1;  
+    };
 
     if (i == 1){
-      channel = PWM_CHANNEL2;
-      pin = pin2 ;  // PWM1
-    }
+      PWMwork = PWM2 ; 
+    };
 
-    gpioSetMode(pin, PI_OUTPUT);
+//---------------------------------------------------------------------
+    gpioSetMode(PWMwork.pin, PI_OUTPUT);
     
 //---------------------------------------------------------------------      
-    printf("Required frequency: %f Hz\n", frequency[i]);
-    printf("Loop %i, Channel %i, pin %i\n", i, channel, pin);
+    printf("Required frequency: %f Hz\n", PWMwork.frequency);
+    printf("Loop %i, Channel %i, pin %i\n", i,PWMwork.channel, PWMwork.pin);
     
     
 //---------------------------------------------------------------------
 // Using of Harware for frequency >= 1 Hz
     
-    if (frequency[i] >= 1){
+    if (PWMwork.frequency >= 1){
 
       int dutyC =500000; //period/2;
 
 
-      gpioHardwarePWM(pin, frequency[i], dutyC);
+      gpioHardwarePWM(PWMwork.pin, PWMwork.frequency, dutyC);
 
-      int RealRange= gpioGetPWMrealRange(pin);
+      int RealRange= gpioGetPWMrealRange(PWMwork.pin);
       printf("the real Range is: %i Hz\n",RealRange);
       
-      int RealFrequency= gpioGetPWMfrequency(pin);
+      int RealFrequency= gpioGetPWMfrequency(PWMwork.pin);
       printf("the real frequency is: %i Hz\n",RealFrequency);      
       
     }
@@ -98,14 +114,14 @@ int main(int argc, char* argv[] ) {
       //  int wiringPiSetup(void);
       
       // pinMode(pin, PWM_OUTPUT);
-      double period[2] = {500 / frequency[0], 500/frequency[1]} ;
+      double period[2] = {500 / PWM1.frequency, 500/ PWM2.frequency} ;
       
       
       while(1) {
-	gpioPWM(pin, 0);
+	gpioPWM(PWMwork.pin, 0);
 	delay((int)period[i]);
 	
-	gpioPWM(pin, 255);
+	gpioPWM(PWMwork.pin, 255);
 	delay((int)period[i]);
       }
     }
